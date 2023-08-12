@@ -1,0 +1,153 @@
+import textwrap
+
+def menu():
+    menu = """\n
+    [D]\tDepositar
+    [S]\tSacar
+    [E]\tExtrato
+    [U]\tIncluir Usuário
+    [C]\tIncluir Conta
+    [Q]\tSair
+    => """
+    return input(textwrap.dedent(menu))
+
+
+def depositar(saldo, valorD, extrato, /):
+
+    if valorD <= 0:
+       print("Valor de Depósito Inválido, tente novamente.")
+    elif valorD > 0: 
+       saldo += valorD
+       extrato += f"Depósito: R$ {valorD:.2f}\n"   
+       print("Depósito Efetuado com sucesso.")       
+    return saldo, extrato
+
+
+def sacar(*, saldo, valor, extrato, limite, numero_saques, limite_saques):
+
+    if valor <= 0:
+        print("Valor de Saque Inválido, tente novamente.")
+    else:
+        if valor > saldo:
+            print("Saldo insuficiente, impossível realizar a operação.")
+        else:
+            if valor > limite:
+               print("Valor de Saque excede o limite, impossível realizar a operação.")    
+            else:
+               saldo -= valor
+               extrato += f"Saque: R$ {valor:.2f}\n"
+               numero_saques += 1
+    return numero_saques, saldo, extrato
+
+
+def mostrar_extrato(saldo,/,*, extrato):
+    
+    print("\n================ EXTRATO ================")
+    if extrato == "":
+        print("Não foram realizadas movimentações.")
+    else:
+        print(extrato)
+        print("------------------------------------------")
+        print(f"\nSaldo: R$ {saldo:.2f}")
+        print("==========================================")
+
+
+
+def criar_usuario(cpf,lista_usuarios):
+
+    cliente = pesquisa_usuarios(cpf,lista_usuarios)
+    if cliente:
+        print("Cliente já cadastrado com cpf " +cpf)
+        return
+    
+    nome_cli = input("Informe o nome completo: ")
+    data_nascto_cli = input("Informe a data de nascimento no formato (dd-mm-aaaa): ")
+    end_cli =  input("Informe o endereço no formato: (logradouro, nro - bairro - cidade/sigla estado): ")
+    lista_usuarios.append({"nome": nome_cli, "data nascto": data_nascto_cli, "cpf": cpf, "endereco": end_cli})
+    print("Usuário criado com sucesso!!!")
+
+
+
+def pesquisa_usuarios(cpf,lista_usuarios):
+        
+    pesq_usu = [usuario for usuario in lista_usuarios if usuario["cpf"] == cpf]
+    if pesq_usu == []:
+       return None   
+    else:
+       return pesq_usu[0]
+    
+
+    
+def criar_conta(agencia, nconta, lista_usuarios):
+    cpf = input("Favor informr CPF com apenas números: ")
+    cliente = pesquisa_usuarios(cpf,lista_usuarios)
+
+    if cliente:
+        print("Conta criada com sucesso!!!")
+        return {"Agencia": agencia, "Conta": nconta, "usuario": lista_usuarios}
+    
+    print("Usuario Não Encontrado, conta não criada")
+
+
+def inicia():
+
+    saldo = 0
+    limite = 500
+    extrato = ""
+    numero_saques = 0
+    LIMITE_SAQUES = 3
+    valorD = 0
+    valorS = 0
+    agencia = "0001"
+    lista_usuarios = []
+    lista_contas = []
+
+    while True:
+
+        opcao = menu()
+        upper_opcao = opcao.upper()        
+
+        if upper_opcao != "D" and upper_opcao != "S" and upper_opcao != "E" and upper_opcao != "Q" and upper_opcao != "U" and upper_opcao != "C": 
+           print("Opção Inválida, impossível continuar...")
+           break 
+
+
+        if upper_opcao == "D":
+
+            valorD = float(input("Entre com o Valor de Depósito: "))
+            saldo, extrato = depositar(saldo, valorD, extrato)
+            
+
+        elif upper_opcao == "S":
+        
+            if numero_saques > LIMITE_SAQUES:
+                print("Número de Saques Excedido!")
+            else:
+                valorS = float(input("Entre com o Valor de Saque: "))
+                numero_saques, saldo, extrato = sacar(saldo=saldo, valor=valorS, extrato=extrato, limite=limite, numero_saques=numero_saques, limite_saques = LIMITE_SAQUES)
+                
+
+        elif upper_opcao == "E":
+           
+            mostrar_extrato(saldo, extrato=extrato)              
+
+        elif upper_opcao == "U":
+            
+            cpf = input("Favor informr CPF com apenas números: ")
+            criar_usuario(cpf,lista_usuarios)
+
+        elif upper_opcao == "C":    
+
+            nconta = len(lista_contas) + 1
+            conta = criar_conta(agencia, nconta, lista_usuarios)
+
+            if conta:
+                lista_contas.append(conta)
+
+        else:
+
+            break  
+
+
+inicia()
+
